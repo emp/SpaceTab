@@ -42,6 +42,8 @@ menu reads `Active` once it is.
 
 <img width="293" height="255" alt="image" src="https://github.com/user-attachments/assets/f2cfd72c-1ab3-467e-b4a9-8e22ecd33398" />
 
+Note: A few screen sharing apps are excluded from it - you can modify the list via the menu bar. So you can still CMD+Tab inside a Screen Sharing machine for example.
+
 ## Start at login
 
 System Settings → General → Login Items → `+` → SpaceTab.
