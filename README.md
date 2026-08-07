@@ -40,7 +40,8 @@ menu reads `Active` once it is.
 
 ## Usage
 
-<img width="293" height="255" alt="image" src="https://github.com/user-attachments/assets/f2cfd72c-1ab3-467e-b4a9-8e22ecd33398" />
+<img width="272" height="293" alt="image" src="https://github.com/user-attachments/assets/1fcc5b3e-b759-4127-af0b-b24f321c1553" />
+
 
 Note: A few screen sharing apps are excluded from it - you can modify the list via the menu bar. So you can still CMD+Tab inside a Screen Sharing machine for example.
 
