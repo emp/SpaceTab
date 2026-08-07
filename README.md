@@ -34,32 +34,7 @@ menu reads `Active` once it is.
 
 ## Usage
 
-| Key | Action |
-| --- | --- |
-| `Option+Tab` | Open switcher / advance forward |
-| `Option+Shift+Tab` | Move backward |
-| `Option` + `←` `→` `↑` `↓` | Move selection |
-| release `Option` | Switch to the selected app |
-| `Escape` | Cancel |
-
-Ordering is most-recently-used, so a single `Option+Tab` toggles between your
-last two apps.
-
-### Replacing the system Cmd+Tab
-
-The menu has a **Replace Cmd+Tab** toggle. Switched on, the trigger becomes
-`Cmd+Tab` and the built-in switcher never sees the keystroke — the chord above
-works identically with Cmd substituted for Option.
-
-Nothing about the system is modified, so every failure mode restores stock
-behaviour on its own:
-
-- Quit SpaceTab → Cmd+Tab is back immediately.
-- The app crashes → the event tap dies with the process.
-- The app stalls → macOS disables the tap on timeout and delivers Cmd+Tab to the
-  system switcher; SpaceTab re-enables its tap once responsive.
-
-If SpaceTab is ever wedged, `pkill -x SpaceTab` restores the system switcher.
+<img width="293" height="255" alt="image" src="https://github.com/user-attachments/assets/f2cfd72c-1ab3-467e-b4a9-8e22ecd33398" />
 
 ## Start at login
 
