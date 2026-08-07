@@ -82,6 +82,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Registered rather than hardcoded, so a value the user has explicitly
+        // toggled still wins; these apply only when nothing is stored yet.
+        UserDefaults.standard.register(defaults: [
+            Self.modeKey: HotKeyMode.command.rawValue,
+            Self.blurKey: true
+        ])
+
         applyBackground()
         installStatusItem()
         hotkey.mode = mode
