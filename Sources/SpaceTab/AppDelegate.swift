@@ -1,7 +1,7 @@
 import AppKit
 import ApplicationServices
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let panel = SwitcherPanel()
     private let view = SwitcherView()
     private let hotkey = HotKeyTap()
@@ -14,9 +14,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var blurToggleView: ToggleMenuItemView?
     private var permissionTimer: Timer?
     private var announcedPermissionNeed = false
+    /// Most recent frontmost app that isn't SpaceTab, so the menu can offer to
+    /// exempt whatever the user was actually using.
+    private var foregroundApp: NSRunningApplication?
 
     private static let modeKey = "hotKeyMode"
     private static let blurKey = "useBlurBackground"
+    private static let passthroughKey = "passthroughBundleIDs"
+
+    /// Apps that forward keystrokes to another machine or guest OS. Swallowing
+    /// the trigger inside one of these takes the shortcut away from the remote
+    /// session entirely, so it is passed through untouched instead.
+    private static let defaultPassthroughIDs = [
+        "com.omnissa.horizon.client.mac",
+        "com.vmware.horizon.client",
+        "com.microsoft.rdc.macos",
+        "com.apple.ScreenSharing",
+        "com.teamviewer.TeamViewer",
+        "com.realvnc.vncviewer",
+        "com.citrix.receiver.icaviewer.mac",
+        "com.p5sys.jump.mac.viewer",
+        "com.p5sys.jump.connect",
+        "tv.parsec.www",
+        "com.anydesk.anydesk",
+        "com.nomachine.nxplayer",
+        "com.vmware.fusion",
+        "com.parallels.desktop.console",
+        "org.virtualbox.app.VirtualBox"
+    ]
+
+    private var passthroughIDs: Set<String> {
+        Set(UserDefaults.standard.stringArray(forKey: Self.passthroughKey) ?? [])
+    }
 
     /// The real system material, same as the native switcher. Off by default:
     /// a blurred backdrop is a different image every time it appears and
@@ -86,7 +115,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // toggled still wins; these apply only when nothing is stored yet.
         UserDefaults.standard.register(defaults: [
             Self.modeKey: HotKeyMode.command.rawValue,
-            Self.blurKey: true
+            Self.blurKey: true,
+            Self.passthroughKey: Self.defaultPassthroughIDs
         ])
 
         applyBackground()
@@ -95,6 +125,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         if let front = NSWorkspace.shared.frontmostApplication {
             mru = [front.processIdentifier]
+            foregroundApp = front
+            hotkey.passesThrough = passthroughIDs.contains(front.bundleIdentifier ?? "")
         }
         NSWorkspace.shared.notificationCenter.addObserver(
             self,
@@ -176,6 +208,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let pid = app.processIdentifier
         mru.removeAll { $0 == pid }
         mru.insert(pid, at: 0)
+
+        if pid != ProcessInfo.processInfo.processIdentifier {
+            foregroundApp = app
+        }
+        hotkey.passesThrough = passthroughIDs.contains(app.bundleIdentifier ?? "")
     }
 
     private func ordered(_ candidates: [SpaceApp]) -> [SpaceApp] {
@@ -278,18 +315,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(blurItem)
         blurToggleView = blur
 
+        menu.addItem(.separator())
+        let exempt = NSMenuItem(title: "Pass through in this app",
+                                action: #selector(togglePassthroughApp),
+                                keyEquivalent: "")
+        exempt.tag = 4
+        exempt.target = self
+        menu.addItem(exempt)
+        menu.addItem(.separator())
+
         menu.addItem(withTitle: "Open Accessibility Settings…",
                      action: #selector(openAccessibilitySettings),
                      keyEquivalent: "").target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 
+        // Manual enablement so the passthrough row can grey out, and a delegate
+        // so it names whichever app was frontmost when the menu opened.
+        menu.autoenablesItems = false
+        menu.delegate = self
+
         item.menu = menu
         statusItem = item
         refreshMenu()
     }
 
+    func menuWillOpen(_ menu: NSMenu) {
+        refreshMenu()
+    }
+
+    @objc private func togglePassthroughApp() {
+        guard let id = foregroundApp?.bundleIdentifier else { return }
+        var ids = passthroughIDs
+        if ids.contains(id) { ids.remove(id) } else { ids.insert(id) }
+        UserDefaults.standard.set(Array(ids), forKey: Self.passthroughKey)
+
+        if let current = NSWorkspace.shared.frontmostApplication ?? foregroundApp {
+            hotkey.passesThrough = ids.contains(current.bundleIdentifier ?? "")
+        }
+        refreshMenu()
+    }
+
     private func refreshMenu() {
+        if let app = foregroundApp, let id = app.bundleIdentifier {
+            let entry = statusItem?.menu?.item(withTag: 4)
+            entry?.title = "Pass through in \(app.localizedName ?? id)"
+            entry?.state = passthroughIDs.contains(id) ? .on : .off
+            entry?.isEnabled = true
+        } else {
+            statusItem?.menu?.item(withTag: 4)?.isEnabled = false
+        }
+
         statusItem?.menu?.item(withTag: 2)?.title = "SpaceTab"
         toggleView?.update(isOn: mode == .command, subtitle: "Trigger: \(mode.title)")
         blurToggleView?.update(isOn: usesBlur,

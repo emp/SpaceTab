@@ -48,6 +48,10 @@ final class HotKeyTap {
         didSet { engaged = false }
     }
 
+    /// Set while a remote desktop or VM client is frontmost. The trigger is left
+    /// alone so the guest machine receives it, rather than being swallowed here.
+    var passesThrough = false
+
     private var tap: CFMachPort?
     private var engaged = false
 
@@ -104,6 +108,7 @@ final class HotKeyTap {
         if keyCode == kVK_Tab,
            flags.contains(mode.flag),
            !mode.conflicting.contains(where: { flags.contains($0) }) {
+            guard !passesThrough else { return passthrough }
             engaged = true
             onCycle?(!backward)
             return nil
