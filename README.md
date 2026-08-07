@@ -43,7 +43,7 @@ menu reads `Active` once it is.
 <img width="272" height="293" alt="image" src="https://github.com/user-attachments/assets/1fcc5b3e-b759-4127-af0b-b24f321c1553" />
 
 
-Note: A few screen sharing apps are excluded from it - you can modify the list via the menu bar. So you can still CMD+Tab inside a remote machine, for example.
+Note: A few screen sharing apps are excluded from it - you can modify the list via the menu bar. So you can still CMD+Tab inside a remote mac, for example.
 
 ## Start at login
 
