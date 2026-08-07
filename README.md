@@ -3,6 +3,12 @@
 A Cmd+Tab-style app switcher for macOS that only lists apps with a window on the
 **current Space**.
 
+
+
+https://github.com/user-attachments/assets/2106621e-0c17-4865-85ac-210dd67ea21f
+
+
+
 Built to stay responsive over high-latency screen sharing. 
 
 <img src="Resources/icon.png" width="96" alt="SpaceTab icon">
